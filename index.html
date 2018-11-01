@@ -4,19 +4,22 @@
 <head>
     <title>Socket.IO chat</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="index.js"></script>
     <script>
-        var socket = io();
+        $(document).ready(function() {
+            var socket = io();
+            
+        })
+        
     </script>
 </head>
 
-<body ng-app="Chat">
+<body>
     <div class="jumbotron text-center">
         <strong><h1>CS260 Chat</h1></strong>
     </div>
-    <div class="container" ng-controller="MainCtrl">
+    <div class="container">
         <ul id="messages"></ul>
     <form action="">
         <input id="m" autocomplete="off" /><button>Send</button>
