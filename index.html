@@ -9,21 +9,32 @@
     <script>
         $(document).ready(function() {
             var socket = io();
-            
+            $("#messageSubmit").hide();
+            $("form").submit(function(event) {
+                event.preventDefault();
+            });
+            $("#userName").submit(function() {
+                $("#messageSubmit").show();
+                $("#userName").hide();
+            })
         })
-        
     </script>
 </head>
 
 <body>
     <div class="jumbotron text-center">
-        <strong><h1>CS260 Chat</h1></strong>
+        <strong><h2>CS260 Chat</h2></strong>
     </div>
     <div class="container">
         <ul id="messages"></ul>
-    <form action="">
-        <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
+        <form id="messageSubmit" style="position: fixed; bottom: 10px; left:5%;">
+            <input type="text" size=60/>
+            <input type="button" value="Send Message"/>
+        </form>
+        <form id="userName" style="position: fixed; bottom:50%; top:50%">
+            <input type="text" required placeholder="Enter a username for the chat" size=30;/>
+            <input type="submit" value="Submit" />
+        </form>
     </div>
 </body>
 
