@@ -9,75 +9,104 @@
     <script>
         $(document).ready(function() {
             var socket = io();
-            $("#messageSubmit").hide();
+            var currentUsers = [];
+            $("#interface").hide();
             $("form").submit(function(event) {
                 event.preventDefault();
             });
             $("#userName").submit(function() {
                 socket.emit("join", $("#name").val());
-                console.log('user', $("#name"));
-                $("#messageSubmit").show();
-                $("#userName").hide();
             })
             $("#messageSubmit").submit(function() {
-                socket.emit("newMessage", $("#theMessage").val());
-                console.log('new message: ', $("#theMessage"));
+                var d = new Date($.now());
+                socket.emit("newMessage", { message: $("#theMessage").val(), date: d.toLocaleTimeString() });
                 $("#messageSubmit").each(function() {
                     this.reset();
                 });
             })
+            socket.on("validUser", function(name) {
+                $("#interface").show();
+                $("#userName").hide();
+            })
+            socket.on("duplicateUser", function(name) {
+                alert("Sorry, the username " + name + " is already taken. Please enter a unique username.")
+            })
             socket.on("userUpdate", function(user) {
-                console.log(user);
-                $("#activityLog").append("<li>" + user + "</li>");
+                $("#activityLog").append("<li class=\"list-group-item\">" + user + "</li>");
             })
             socket.on("newMessage", function(msg) {
                 console.log(msg);
-                $('#messages').append("<li>" + msg.user + ": " + msg.message + "</li>");
+                $('#messages').append("<li class=\"list-group-item\">" + msg.user + ": " + msg.message + "  " + msg.date + "</li>");
             })
             socket.on("newUser", function(user) {
-                console.log(user);
-                $("#currentUsers").append("<li>" + user + "</li>");
+                $("#currentUsers").append("<li class=\"list-group-item\">" + user + "</li>");
+                currentUsers.push(user);
             })
             socket.on("getMessages", function(messages) {
-                console.log('messages', messages);
                 for (i = 0; i < messages.length; i++) {
-                    $('#messages').append("<li>" + messages[i].user + ": " + messages[i].message + "</li>");
+                    $('#messages').append("<li class=\"list-group-item\">" + messages[i].user + ": " + messages[i].message + "  " + messages[i].date + "</li>");
                 }
             })
             socket.on("getUsers", function(people) {
-                console.log("people", people);
-                for (i = 0; i < people.length; i++) {
-                    $('#currentUsers').append("<li>" + people[i] + "</li>");
+                currentUsers = people;
+                var everything = "";
+                for (i = 0; i < currentUsers.length; i++) {
+                    everything += "<li class=\"list-group-item\">" + currentUsers[i] + "</li>";
                 }
+                $("#currentUsers").html(everything);
+            })
+            socket.on("leave", function(person) {
+                console.log("leaver: ", person);
+                currentUsers = currentUsers.filter(el => el != person);
+                $("#activityLog").append("<li class=\"list-group-item\">" + person + " has left the chat.</li>");
+                var everything = "";
+                for (i = 0; i < currentUsers.length; i++) {
+                    everything += "<li class=\"list-group-item\">" + currentUsers[i] + "</li>"
+                }
+                $("#currentUsers").html(everything);
             })
         })
     </script>
 </head>
 
 <body>
-    <div class="jumbotron text-center">
+    <div class="jumbotron text-center shadow p-4 mb-5 rounded bg-info border border-primary">
         <strong><h2>CS260 Chat</h2></strong>
     </div>
-    <div style="display:flex; flex-direction:row;">
-        <div style="flex:2; border: 2px solid">
-            <h3>Messages</h3>
-            <ul id="messages"></ul>
+    <div style="position: absolute; width: 350px; height: 200px; z-index: 15; top: 50%; left: 50%; margin: -100px 0 0 -150px;">
+        <form id="userName">
+            <input type="text" required placeholder="Enter a username for the chat" size=30; id="name" ;/>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+    <div style="display:flex; flex-direction:row; position:fixed; top:25%; bottom: 10%; width:100%;" id="interface">
+        <div class ="shadow-sm p-4 mb-5 rounded border border-primary" style="display:flex; flex-direction:column; flex:2; ">
+            <div style="flex:1;">
+                <h3>Messages</h3>
+            </div>
+            <div style="flex:8; overflow:auto;">
+                <ul class="list-group" id="messages"></ul>
             <form id="messageSubmit" style="position: fixed; bottom: 10px; left:2%;">
                 <input type="text" size=60 id="theMessage">
-                <input type="submit" value="Send Message" />
+                <button type="submit" class="btn btn-primary">Send Message</button>
             </form>
+            </div>
         </div>
-        <div style="flex:1; border: 2px solid">
-            <h3>Currently Online</h3>
-            <ul id="currentUsers"></ul>
+        <div class ="shadow-sm p-4 mb-5 rounded border border-primary" style="display:flex; flex-direction:column; flex:1;">
+            <div style="flex:1">
+                <h3>Currently Online</h3>
+            </div>
+            <div style="flex:8 overflow:auto;">
+               <ul class="list-group" id="currentUsers"></ul> 
+            </div>
         </div>
-        <div style="flex:1; border: 2px solid">
-            <h3>User Activity</h3>
-            <ul id="activityLog"></ul>
-            <form id="userName" style="position: fixed; bottom:50%; top:50%">
-                <input type="text" required placeholder="Enter a username for the chat" size=30; id="name";/>
-                <input type="submit" value="Submit" />
-            </form>
+        <div class ="shadow-sm p-4 mb-5 rounded border border-primary" style="display:flex; flex-direction:column; flex:1;">
+            <div style="flex:1;">
+                <h3>User Activity</h3>
+            </div>
+            <div style="flex:8; overflow:auto;">
+                <ul class="list-group" id="activityLog"></ul>
+            </div>
         </div>
     </div>
 </body>
